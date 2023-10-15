@@ -21,7 +21,7 @@ def generate_sudoku():
     return [ [nums[pattern(r,c)] for c in cols] for r in rows ]
 
 pygame.font.init() # Initialize pygame font
-screen = pygame.display.set_mode((600, 600)) # Set screen size
+screen = pygame.display.set_mode((800, 800)) # Set screen size
 pygame.display.set_caption('SUDOKU SOLVER(BACKTRACING)')    # Set title of screen
 img = pygame.image.load('icon.png') # Load icon image
 pygame.display.set_icon(img) # Set icon image
@@ -52,9 +52,22 @@ def create_puzzle(board, difficulty):
 
     return puzzle
 
+start_ticks = pygame.time.get_ticks()  # Define start_ticks globally
+stop_ticks = 0
+
+def display_timer():
+    global start_ticks, stop_ticks
+    current_time = pygame.time.get_ticks()
+    elapsed_time = stop_ticks - start_ticks
+    time_text = font2.render(f'Time: {elapsed_time/1000}', True, (0, 0, 0))
+    screen.blit(time_text, (500, 10))
+
+
+
 def select_difficulty():
     screen.fill((255, 255, 255))
     font = pygame.font.SysFont('comicsans', 32)
+    global start_ticks, stop_ticks # Define start_ticks globally
 
     text1 = font.render('Select Difficulty', 1, (0, 0, 0))
     text2 = font.render('1: Easy', 1, (0, 0, 0))
@@ -68,21 +81,33 @@ def select_difficulty():
 
     pygame.display.update()
 
+
     selecting = True # Loop until a valid difficulty is selected
     while selecting:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 full_board = generate_sudoku()
                 if event.key == pygame.K_1:
-                    return create_puzzle(full_board, 'easy')
+                    start_ticks = pygame.time.get_ticks()  # Reset start_ticks here
+                    result = create_puzzle(full_board, 'easy')
+                    display_timer()  # Call display_timer() here
+                    return result
                 elif event.key == pygame.K_2:
-                    return create_puzzle(full_board, 'medium')
+                    start_ticks = pygame.time.get_ticks()  # Reset start_ticks here
+                    result = create_puzzle(full_board, 'medium')
+                    display_timer()  # Call display_timer() here
+                    return result
                 elif event.key == pygame.K_3:
-                    return create_puzzle(full_board, 'hard')
+                    start_ticks = pygame.time.get_ticks()  # Reset start_ticks here
+                    result = create_puzzle(full_board, 'hard')
+                    display_timer()  # Call display_timer() here
+                    return result
 
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
+
 
 # Replace the original grid variable with a function call
 grid = select_difficulty()
@@ -200,6 +225,8 @@ def instruction(): # Display instruction to use the game
 
 
 def result(): # Display the result
+  global stop_ticks
+  stop_ticks = pygame.time.get_ticks()  # Update stop_ticks here
   text1 = font1.render('FINISHED PRESS R or D\n', 1, (0, 0, 0))
   screen.blit(text1, (20, 570))
 
@@ -218,19 +245,23 @@ while run: # Run the game loop
            flag_1 = 1
            pos = pygame.mouse.get_pos() # Get the position of the mouse click
            get_coord(pos)
-       if event.type == pygame.KEYDOWN: # If user presses a key
+       if event.type == pygame.KEYDOWN:  # If user presses a key
            if event.key == pygame.K_LEFT:
-               x -= 1
-               flag_1 = 1
+               if x > 0:  # Check if x is not at the left edge
+                   x -= 1
+                   flag_1 = 1
            if event.key == pygame.K_RIGHT:
-               x += 1
-               flag_1 = 1
+               if x < 8:  # Check if x is not at the right edge
+                   x += 1
+                   flag_1 = 1
            if event.key == pygame.K_UP:
-               y -= 1
-               flag_1 = 1
+               if y > 0:  # Check if y is not at the top edge
+                   y -= 1
+                   flag_1 = 1
            if event.key == pygame.K_DOWN:
-               y += 1
-               flag_1 = 1
+               if y < 8:  # Check if y is not at the bottom edge
+                   y += 1
+                   flag_1 = 1
            if event.key == pygame.K_1:
                val = 1
            if event.key == pygame.K_2:
@@ -275,6 +306,25 @@ while run: # Run the game loop
                error = 0
                flag_2 = 0
                grid = copy.deepcopy(original_grid)
+       if rs == 1:
+           if event.type == pygame.KEYDOWN:
+               if event.key == pygame.K_1:
+                   rs = 0
+                   error = 0
+                   flag_2 = 0
+                   grid = select_difficulty()
+               elif event.key == pygame.K_2:
+                   rs = 0
+                   error = 0
+                   flag_2 = 0
+                   grid = select_difficulty()
+               elif event.key == pygame.K_3:
+                   rs = 0
+                   error = 0
+                   flag_2 = 0
+                   grid = select_difficulty()
+           result()
+           display_timer()
 
    if flag_2 == 1: # Call solve function when enter is pressed
        if solve(grid, 0, 0) == False:
@@ -295,11 +345,10 @@ while run: # Run the game loop
 
    if error == 1: # If there is an error display it
        raise_error_1()
-   if rs == 1:
-       result()
    draw()
    if flag_1 == 1:
        draw_box()
    instruction() # Display instructions
+   display_timer()
 
    pygame.display.update() # Update the display
