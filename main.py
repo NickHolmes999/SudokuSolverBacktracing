@@ -1,6 +1,6 @@
 import pygame # Import pygame library
 import copy # Import copy library to make a deep copy of the grid
-import random
+import random # Import random library to generate random numbers
 
 def generate_sudoku():
     # Starting with a solved board, you might use something like the following
